@@ -16,6 +16,6 @@
 
   "content_scripts": [{
     "matches": ["https://www.okex.com/future/*"],
-    "js": ["jquery.js", "okex.js"]
+    "js": ["okex.js"]
   }]
 }
