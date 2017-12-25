@@ -2,7 +2,7 @@
 
 const on_index_update = (index) => {
     console.log(new Date)
-    console.log(index)
+    console.log({index, ...collect_info()})
 }
 
 const fuck = async (data) => new Promise((resolve, reject) => {

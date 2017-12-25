@@ -31,6 +31,9 @@ const wait_time_out = (p, t=2) => new Promise((resolve, reject) => {
 
 const wait_until = async (cond) => {
     while (!cond()) {
+        console.log("not yet")
         await sleep(0.02)
     }
 }
+
+const parse_money = x => parseFloat(x.replace(',', ''))
