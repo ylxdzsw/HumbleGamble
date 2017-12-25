@@ -1,0 +1,21 @@
+{
+  "manifest_version": 2,
+
+  "name": "HumbleGamble",
+  "author": "ylxdzsw@gmail.com",
+  "description": "Happy Gambling!",
+  "version": "0.1",
+
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+
+  "background": {
+    "scripts": ["model.js"]
+  },
+
+  "content_scripts": [{
+    "matches": ["https://www.okex.com/future/*"],
+    "js": ["jquery.js", "okex.js"]
+  }]
+}
