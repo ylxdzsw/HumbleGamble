@@ -22,7 +22,7 @@ const get_kline = async () => {
 
             is_recording() && savedata('kline', kline)
             delete get_kline.queue
-            return get_kline.kline = (get_kline.kline || []).concat(kline).slice(-2880)
+            return get_kline.kline = (get_kline.kline || []).concat(kline).slice(-2558)
         })
     }
 
