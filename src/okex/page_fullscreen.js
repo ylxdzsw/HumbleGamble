@@ -24,25 +24,34 @@ const inject_elements = () => {
     const gambling = document.createElement("span")
     gambling.setAttribute('class', "topDataSpan")
     gambling.innerHTML = `
-        <input type="checkbox" id="auto_gambling" style="position: relative; top: 3px" />
-        <label for="auto_gambling"> Auto Gambling </label>
+        <input type="checkbox" id="gambling" style="position: relative; top: 3px" ${sessionStorage.getItem('gambling') ? 'checked' : ''} />
+        <label for="gambling"> Auto Gamble </label>
     `
     $(".orderListBody > .topData").appendChild(gambling)
-
-    const record = document.createElement("span")
-    record.setAttribute('class', "topDataSpan")
-    record.innerHTML = `
-        <input type="checkbox" id="record" style="position: relative; top: 3px" />
-        <label for="record"> Record </label>
-    `
-    $(".orderListBody > .topData").appendChild(record)
+    $("#gambling").onchange = e => sessionStorage.setItem('gambling', e.target.checked)
 
     const probability = document.createElement("span")
     probability.setAttribute('class', "topDataSpan")
     $(".orderListBody > .topData").appendChild(probability)
+
+    const recording = document.createElement("span")
+    recording.setAttribute('class', "topDataSpan")
+    recording.innerHTML = `
+        <input type="checkbox" id="recording" style="position: relative; top: 3px" ${sessionStorage.getItem('recording') ? 'checked' : ''} />
+        <label for="recording"> Record </label>
+    `
+    $(".orderListBody > .topData").appendChild(recording)
+    $("#recording").onchange = e => sessionStorage.setItem('recording', e.target.checked)
+
+    const exportdata = document.createElement("span")
+    exportdata.setAttribute('class', "topDataSpan")
+    exportdata.innerHTML = `<a id="export" href="#" onclick="return false"> Export </a>`
+    $(".orderListBody > .topData").appendChild(exportdata)
+    $("#export").onclick = export_data
 }
 
-const is_recording = () => $("#record") && $("#record").checked
+const is_recording = () => $("#recording") && $("#recording").checked
+const is_gambling = () => $("#gambling") && $("#gambling").checked
 
 const init_fullscreen = async () => {
     await wait_until(ready)
