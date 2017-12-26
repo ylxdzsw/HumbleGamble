@@ -29,10 +29,20 @@ const inject_elements = () => {
     `
     $(".orderListBody > .topData").appendChild(gambling)
 
+    const record = document.createElement("span")
+    record.setAttribute('class', "topDataSpan")
+    record.innerHTML = `
+        <input type="checkbox" id="record" style="position: relative; top: 3px" />
+        <label for="record"> Record </label>
+    `
+    $(".orderListBody > .topData").appendChild(record)
+
     const probability = document.createElement("span")
     probability.setAttribute('class', "topDataSpan")
     $(".orderListBody > .topData").appendChild(probability)
 }
+
+const is_recording = () => $("#record") && $("#record").checked
 
 const init_fullscreen = async () => {
     await wait_until(ready)

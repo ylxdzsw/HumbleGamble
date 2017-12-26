@@ -10,6 +10,10 @@
     "default_icon": "icon.png"
   },
 
+  "icons": {
+    "100": "icon.png"
+  },
+
   "background": {
     "scripts": ["model.js"]
   },
