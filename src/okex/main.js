@@ -18,11 +18,11 @@ const get_kline = async () => {
                      (get_kline.kline ? "&since=" + get_kline.kline[get_kline.kline.length-1][0] : '')
 
         get_kline.queue = okget(path).then((data) => {
-            const kline = JSON.parse(data).map(([time, open, high, low, close, volume]) => ({ time, high, low, close, volume }))
+            const kline = JSON.parse(data).map(([time, open, high, low, close, volume]) => ({ time, high, low, close, volume })).slice(0, -1)
 
             is_recording() && savedata('kline', kline)
             delete get_kline.queue
-            return get_kline.kline = (get_kline.kline || []).concat(kline).slice(-2558)
+            return get_kline.kline = (get_kline.kline || []).concat(kline).slice(-2644)
         })
     }
 

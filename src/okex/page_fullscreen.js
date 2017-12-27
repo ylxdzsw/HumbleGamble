@@ -6,11 +6,44 @@ const observe_index = (cb) => {
     observer.observe(el, { childList: true })
 }
 
+const parse_depth = (li) => {
+    return [].map.call(li, x => ({
+        price: parse_money(x.querySelector(".priceSpan").textContent),
+        cumulative: parseFloat(x.querySelector(".amountBtcSpan").textContent)
+    }))
+}
+
+const depth_info = (asks, bids) => {
+    const askd = asks[asks.length-1].cumulative
+    const bidd = bids[bids.length-1].cumulative
+
+    let ask1 = asks[asks.length-1].price
+    for (const {price, cumulative} of asks) {
+        if (cumulative > 1) {
+            ask1 = price
+            break
+        }
+    }
+
+    let bid1 = bids[bids.length-1].price
+    for (const {price, cumulative} of bids) {
+        if (cumulative > 1) {
+            bid1 = price
+            break
+        }
+    }
+
+    return { ask1, bid1, askd: askd / (askd + bidd), bidd: bidd / (askd + bidd)}
+}
+
 const collect_info = () => {
     const last_price = parse_money($("#priceIndex .lastPrice > em").textContent)
+    const amount24h = parse_money($("#amount24h").textContent.slice(1))
     const total_hold = parse_money($("#holdAmount").textContent.slice(1))
-    // TODO: depth
-    return { last_price, total_hold }
+    const bids = parse_depth(document.querySelectorAll("#buyDepth  > :not([style])"))
+    const asks = parse_depth(document.querySelectorAll("#sellDepth > :not([style])")).reverse()
+
+    return { last_price, amount24h, total_hold, ...depth_info(asks, bids) }
 }
 
 const clear_hist = () => {
@@ -41,7 +74,7 @@ const inject_elements = () => {
         <label for="recording"> Record </label>
     `
     $(".orderListBody > .topData").appendChild(recording)
-    $("#recording").onchange = e => sessionStorage.setItem('recording', e.target.checked)
+    $("#recording").onchange = e => e.target.checked ? sessionStorage.setItem('recording', '1') : sessionStorage.removeItem('recording')
 
     const exportdata = document.createElement("span")
     exportdata.setAttribute('class', "topDataSpan")

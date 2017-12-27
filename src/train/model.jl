@@ -1,8 +1,8 @@
 function im2col(x)
-    p = typeof(x)(size(x, 1) ÷ 4 - 2, 4size(x, 2))
+    p = typeof(x)(size(x, 1) ÷ 4 - 1, 8size(x, 2))
 
     for i in 1:size(p, 1)
-        p[i, :] = x[2i-1:2i+2, :]
+        p[i, :] = x[4i-3:4i+4, :]
     end
 
     p
@@ -11,7 +11,7 @@ end
 function im2col′(x, dy)
     dx = zeros(x)
     for i in 1:size(dy, 1)
-        dx[2i-1:2i+2, :] += reshape(dy[i, :], 4, :)
+        dx[4i-3:4i+4, :] += reshape(dy[i, :], 8, :)
     end
     dx
 end
@@ -19,38 +19,47 @@ end
 @primitive im2col(x),dy im2col′(x, dy)
 
 """
-d: 2558 * 4
-w: [[16 * 4], [16 * 6], [24 * 8], [32 * 8]*6, [4], [6], [8]*7]
+frame: [2644 * 4]
+w: [[32 * 4], [32 * 6], [48 * 8], [64 * 8], [4], [6], [8], [8]]
 """
-function kline_conv(d, w)
-    conv1 = relu.(im2col(d)     * w[1] .+ w[10]) # 2558x4 -> 1278x4
-    conv2 = relu.(im2col(conv1) * w[2] .+ w[11]) # 1278x4 -> 638x6
-    conv3 = relu.(im2col(conv2) * w[3] .+ w[12]) # 638x6  -> 318x8
-    conv4 = relu.(im2col(conv3) * w[4] .+ w[13]) # 318x8  -> 158x8
-    conv5 = relu.(im2col(conv4) * w[5] .+ w[14]) # 158x8  -> 78x8
-    conv6 = relu.(im2col(conv5) * w[6] .+ w[15]) # 78x8   -> 38x8
-    conv7 = relu.(im2col(conv6) * w[7] .+ w[16]) # 38x8   -> 18x8
-    conv8 = relu.(im2col(conv7) * w[8] .+ w[17]) # 18x8   -> 8x8
-    conv9 = relu.(im2col(conv8) * w[9] .+ w[18]) # 8x8    -> 3x8
-    return conv9[:]
+function kline_conv(frame, w)
+    conv1 = sigm.(im2col(frame) * w[1] .+ w[5]) # 2644x4 -> 660x4
+    conv2 = sigm.(im2col(conv1) * w[2] .+ w[6]) # 660x4  -> 164x6
+    conv3 = sigm.(im2col(conv2) * w[3] .+ w[7]) # 164x6  -> 40x8
+    conv4 = sigm.(im2col(conv3) * w[4] .+ w[8]) # 40x8   -> 9x8
+    return conv4[:]
 end
 
 """
-d: 24
-w: [[20 * 24], [20]]
+state: [72]
+w: [[20 * 72], [20]]
 """
-function final(d, w)
-    w[1] * d .+ w[2]
+function final(state, w)
+    w[1] * state .+ w[2]
 end
 
-function pred_loss(w, d, y)
+"""
+state: [72]
+pulse: [8] * n
+w: [[8 * 80], [72 * 8]]
+"""
+function pulse_recur(state, pulse, w)
+    for p in pulse
+        state = state .+ w[2] * sigm.(w[1] * [state; p])
+    end
+    state
+end
+
+function pred_loss(w, frame, pulse, y)
     function cind(y)
-        y > .0018 ? 1 :
-        y < -.0018 ? 3 : 2
+        y >  .01 ? 1 :
+        y < -.01 ? 3 : 2
     end
 
-    states = kline_conv(d, w[1])
-    p = final(states, w[2])
+    state = kline_conv(frame, w[1])
+    state = pulse_recur(state, pulse, w[2])
+    p = final(state, w[3])
+
     loss = -logp(p[1:3])[cind(y[1])]   + 0.1 * (p[4]  - y[1])^2 +
            -logp(p[5:7])[cind(y[2])]   + 0.1 * (p[8]  - y[2])^2 +
            -logp(p[9:11])[cind(y[3])]  + 0.1 * (p[12] - y[3])^2 +
@@ -59,31 +68,113 @@ function pred_loss(w, d, y)
     # TODO: add regularization
 end
 
-function pred(w, d)
-    states = kline_conv(d, w[1])
-    p = final(states, w[2])
-    map(1:5) do i
-        exp.(logp(p[4i-3:4i-1])), p[4i]
-    end
-end
-
-function train(w, data)
+function train(w, data, nepoch=200, nacc=5, μconv=0.01, μrecur=0.01, μfinal=0.005)
     g = grad(pred_loss)
-    for i in 1:length(data)
-        println(pred_loss(w, data[i]...))
-        w′ = g(w, data[i]...)
-        for (x, dx) in zip(w[1], w′[1])
-            x .-= 0.001dx
+    w′, acci = nothing, 0
+    for epoch in 1:nepoch
+        for i in 1:length(data)
+            w′ .+= g(w, data[i]...)
+            if acci >= nacc
+                for j in 1:3, (x, dx) in zip(w[j], w′[j])
+                    x .-= 0.01dx
+                end
+                acci = 0
+            end
         end
-        for (x, dx) in zip(w[2], w′[2])
-            x .-= 0.002dx
+
+        if epoch % 10 == 0
+            loss = sum(map(x->pred_loss(w, x...)), data)
+            println("epoch: $epoch, loss: $loss")
         end
     end
 end
 
-function assess(w, data)
+function im2col(x)
+    p = typeof(x)(size(x, 1) ÷ 4 - 1, 8size(x, 2))
 
+    for i in 1:size(p, 1)
+        p[i, :] = x[4i-3:4i+4, :]
+    end
+
+    p
 end
 
+function im2col′(x, dy)
+    dx = zeros(x)
+    for i in 1:size(dy, 1)
+        dx[4i-3:4i+4, :] += reshape(dy[i, :], 8, :)
+    end
+    dx
+end
 
+@primitive im2col(x),dy im2col′(x, dy)
+
+"""
+frame: [2644 * 4]
+w: [[32 * 4], [32 * 6], [48 * 8], [64 * 8], [4], [6], [8], [8]]
+"""
+function kline_conv(frame, w)
+    conv1 = sigm.(im2col(frame) * w[1] .+ w[5]) # 2644x4 -> 660x4
+    conv2 = sigm.(im2col(conv1) * w[2] .+ w[6]) # 660x4  -> 164x6
+    conv3 = sigm.(im2col(conv2) * w[3] .+ w[7]) # 164x6  -> 40x8
+    conv4 = sigm.(im2col(conv3) * w[4] .+ w[8]) # 40x8   -> 9x8
+    return conv4[:]
+end
+
+"""
+state: [72]
+w: [[20 * 72], [20]]
+"""
+function final(state, w)
+    w[1] * state .+ w[2]
+end
+
+"""
+state: [72]
+pulse: [8] * n
+w: [[8 * 80], [72 * 8]]
+"""
+function pulse_recur(state, pulse, w)
+    for p in pulse
+        state = state .+ w[2] * sigm.(w[1] * [state; p])
+    end
+    state
+end
+
+function pred_loss(w, frame, pulse, y)
+    function cind(y)
+        y >  .01 ? 1 :
+        y < -.01 ? 3 : 2
+    end
+
+    state = kline_conv(frame, w[1])
+    state = pulse_recur(state, pulse, w[2])
+    p = final(state, w[3])
+
+    loss = -logp(p[1:3])[cind(y[1])]   + 0.1 * (p[4]  - y[1])^2 +
+           -logp(p[5:7])[cind(y[2])]   + 0.1 * (p[8]  - y[2])^2 +
+           -logp(p[9:11])[cind(y[3])]  + 0.1 * (p[12] - y[3])^2 +
+           -logp(p[13:15])[cind(y[4])] + 0.1 * (p[16] - y[4])^2 +
+           -logp(p[17:19])[cind(y[5])] + 0.1 * (p[20] - y[5])^2
+    # TODO: add regularization
+end
+
+function train(w, data, nepoch=200, μ=[0.01, 0.01, 0.005])
+    g = gradloss(pred_loss)
+    tic()
+    for epoch in 1:nepoch
+        total_loss = 0
+        for i in 1:length(data)
+            w′, loss = g(w, data[i]...)
+            skip = length(data[i][2]) == 0 ? 2 : 1
+            for j in 1:skip:3, (x, dx) in zip(w[j], w′[j])
+                x .-= μ[j] * dx
+            end
+            total_loss += loss
+        end
+        print("epoch: $epoch, loss: $total_loss, ")
+        toc(); tic()
+    end
+    toq()
+end
 
