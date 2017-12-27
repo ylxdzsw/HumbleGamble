@@ -86,3 +86,5 @@ function train(w, data, nepoch=200, μ=[0.01, 0.01, 0.005])
     end
     toq()
 end
+
+# TODO: add bias for recur
