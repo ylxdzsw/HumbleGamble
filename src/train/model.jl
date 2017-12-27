@@ -1,8 +1,8 @@
 function im2col(x)
-    p = typeof(x)(size(x, 1) ÷ 2 - 1, 5size(x, 2))
+    p = typeof(x)(size(x, 1) ÷ 4 - 2, 4size(x, 2))
 
     for i in 1:size(p, 1)
-        p[i, :] = x[2i-1:2i+3, :]
+        p[i, :] = x[2i-1:2i+2, :]
     end
 
     p
@@ -11,7 +11,7 @@ end
 function im2col′(x, dy)
     dx = zeros(x)
     for i in 1:size(dy, 1)
-        dx[2i-1:2i+3, :] += reshape(dy[i, :], 5, :)
+        dx[2i-1:2i+2, :] += reshape(dy[i, :], 4, :)
     end
     dx
 end
@@ -35,13 +35,55 @@ function kline_conv(d, w)
     return conv9[:]
 end
 
-function pred_loss(w, d, y)
-
+"""
+d: 24
+w: [[20 * 24], [20]]
+"""
+function final(d, w)
+    w[1] * d .+ w[2]
 end
 
+function pred_loss(w, d, y)
+    function cind(y)
+        y > .0018 ? 1 :
+        y < -.0018 ? 3 : 2
+    end
 
+    states = kline_conv(d, w[1])
+    p = final(states, w[2])
+    loss = -logp(p[1:3])[cind(y[1])]   + 0.1 * (p[4]  - y[1])^2 +
+           -logp(p[5:7])[cind(y[2])]   + 0.1 * (p[8]  - y[2])^2 +
+           -logp(p[9:11])[cind(y[3])]  + 0.1 * (p[12] - y[3])^2 +
+           -logp(p[13:15])[cind(y[4])] + 0.1 * (p[16] - y[4])^2 +
+           -logp(p[17:19])[cind(y[5])] + 0.1 * (p[20] - y[5])^2
+    # TODO: add regularization
+end
 
+function pred(w, d)
+    states = kline_conv(d, w[1])
+    p = final(states, w[2])
+    map(1:5) do i
+        exp.(logp(p[4i-3:4i-1])), p[4i]
+    end
+end
 
+function train(w, data)
+    g = grad(pred_loss)
+    for i in 1:length(data)
+        println(pred_loss(w, data[i]...))
+        w′ = g(w, data[i]...)
+        for (x, dx) in zip(w[1], w′[1])
+            x .-= 0.001dx
+        end
+        for (x, dx) in zip(w[2], w′[2])
+            x .-= 0.002dx
+        end
+    end
+end
+
+function assess(w, data)
+
+end
 
 
 

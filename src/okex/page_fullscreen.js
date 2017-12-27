@@ -50,6 +50,8 @@ const inject_elements = () => {
     $("#export").onclick = export_data
 }
 
+const ensure_BBO = () => $("#match_price").checked || $("#match_price").click()
+
 const is_recording = () => $("#recording") && $("#recording").checked
 const is_gambling = () => $("#gambling") && $("#gambling").checked
 

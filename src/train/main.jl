@@ -53,23 +53,34 @@ function jsonmatrix(list)
     end
 end
 
-function read_conv_weight(path=rel"../../data/conv_weights.json")
+function read_weights(name, spec, v=.5)
     try
-        data = open(readstring, path)
-        data = JSON.parse(data)
+        data = open(readstring, rel"../../data/" * name) |> JSON.parse
         map(jsonmatrix, data)
     catch
-        map(x->.8rand(x) .- .4, [(16, 4), (16, 6), (24, 8), (32, 8), (32, 8), (32, 8), (32, 8), (32, 8), (32, 8),
-                                 (1, 4),  (1, 6),  (1, 8),  (1, 8),  (1, 8),  (1, 8),  (1, 8),  (1, 8),  (1, 8)])
+        map(x->v * rand(x) .- .5v, spec)
     end
 end
 
-function save_conv_weight(w, path=rel"../../data/conv_weights.json")
+function save_weights(w, name)
     w = map(x->size(x, 1) == 1 ? x[:] : x, w)
-    open(path, "w") do f
+    open(rel"../../data/" * name, "w") do f
         write(f, JSON.json(w))
     end
 end
+
+function read_conv_weights()
+    read_weights("conv_weights.json", [(16, 4), (16, 6), (24, 8), (32, 8), (32, 8), (32, 8), (32, 8), (32, 8), (32, 8),
+                                      (1, 4),  (1, 6),  (1, 8),  (1, 8),  (1, 8),  (1, 8),  (1, 8),  (1, 8),  (1, 8)])
+end
+
+save_conv_weights(w) = save_weights(w, "conv_weights.json")
+
+function read_final_weights()
+    read_weights("final_weights.json", [(20, 24), (1, 20)])
+end
+
+save_final_weights(w) = save_weights(w, "final_weights.json")
 
 @main function main()
 
