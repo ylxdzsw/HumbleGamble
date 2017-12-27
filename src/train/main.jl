@@ -3,6 +3,7 @@ using AutoGrad
 using Knet
 using JSON
 using Fire
+using JLD
 
 include("model.jl")
 
@@ -45,63 +46,50 @@ function read_data(f)
     return data
 end
 
-const spec = [
-    [(.5, 32, 4), (.5, 32, 6), (.5, 48, 8), (.5, 64, 8), (0, 1, 4), (0, 1, 6), (0, 1, 8), (0, 1, 8)],
-    [(.2, 8, 80), (.2, 72, 8)],
-    [(.5, 20, 72), (0, 1, 20)]
-]
+function init_weights()
+    const weight_spec = [
+        [(.5, 32, 4), (.5, 32, 6), (.5, 48, 8), (.5, 64, 8), (0, 1, 4), (0, 1, 6), (0, 1, 8), (0, 1, 8)],
+        [(.2, 8, 80), (.2, 72, 8)],
+        [(.5, 20, 72), (0, 1, 20)]
+    ]
 
-function jsonmatrix(list)
-    if list[1] isa Vector
-        m = Matrix{f64}(length(list[1]), length(list))
-        for i in 1:length(list)
-            m[:, i] = list[i]
+    map(weight_spec) do specs
+        map(specs) do spec
+            car(spec) * rand(cdr(spec)) .- .5car(spec)
         end
-        m
-    else
-        reshape(Vector{f64}(list), 1, :)
     end
 end
 
-function read_weights(name, spec)
-    try
-        data = open(readstring, rel"../../data/" * name) |> JSON.parse
-        map(jsonmatrix, data)
-    catch
-        map(x->car(x) * rand(cdr(x)) .- .5car(x), spec)
+function write_weights(w, f)
+    list = []
+    for x in w, m in x
+        append!(list, m[:])
     end
+
+    write(f, JSON.json(list))
 end
 
-function save_weights(w, name)
-    w = map(x->size(x, 1) == 1 ? x[:] : x, w)
-    open(rel"../../data/" * name, "w") do f
-        write(f, JSON.json(w))
-    end
-end
-
-function read_conv_weights()
-    read_weights("conv_weights.json", )
-end
-
-save_conv_weights(w) = save_weights(w, "conv_weights.json")
-
-function read_recur_weights()
-    read_weights("recur_weights.json", )
-end
-
-save_recur_weights(w) = save_weights(w, "recur_weights.json")
-
-function read_final_weights()
-    read_weights("final_weights.json", )
-end
-
-save_final_weights(w) = save_weights(w, "final_weights.json")
-
-@main function main(x::Int=200)
-    w = [read_conv_weights(), read_recur_weights(), read_final_weights()]
+@main function main(epoch::Int=200)
     data = open(read_data, rel"../../data/data.json")
-    train(w, data, x)
-    save_conv_weights(w[1])
-    save_recur_weights(w[2])
-    save_final_weights(w[3])
+    w = try
+        load(rel"../../data/weights.jld")["w"]
+    catch
+        println("fail to find weights, init new weights...")
+        init_weights()
+    end
+
+    train(w, data, epoch)
+
+    save(rel"../../data/weights.jld", "w", w)
+
+    open(rel"../model/weights.js", "w") do f
+        f << "load_weights=()=>["
+        for i in 1:3
+            f << '['
+            for x in w[i]
+                f << "new Mat($(nrow(x)),$(ncol(x))," << JSON.json(x[:]) << "),"
+            end
+            f << ']' << (i == 3 ? ']' : ',')
+        end
+    end
 end
