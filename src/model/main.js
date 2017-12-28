@@ -5,7 +5,7 @@ const pack_kline = (kline) => {
         frame.data[i]           = kline[i].close  / 10000
         frame.data[i + len]     = kline[i].high   / 10000
         frame.data[i + len * 2] = kline[i].low    / 10000
-        frame.data[i + len * 3] = kline[i].volume / 1000
+        frame.data[i + len * 3] = kline[i].volume / 10000
     }
     return frame
 }
@@ -28,9 +28,13 @@ chrome.runtime.onMessage.addListener((data, sender, respond) => {
             return respond({ action: 'display', data: final(state, w[2]) })
 
         case 'pulse':
-            pulse = pack_pulse(data.data)
-            state = pulse_recur(state, pulse, w[1])
-            return respond({ action: 'display', data: final(state, w[2]) })
+            if (!state) {
+                return respond({ action: 'nop' })
+            } else {
+                pulse = pack_pulse(data.data)
+                state = pulse_recur(state, pulse, w[1])
+                return respond({ action: 'display', data: final(state, w[2]) })
+            }
 
         default:
             throw new Error("fuck")

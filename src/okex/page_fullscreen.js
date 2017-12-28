@@ -40,16 +40,6 @@ const inject_elements = () => {
     $(".orderListBody > .topData").appendChild(gambling)
     $("#gambling").onchange = e => sessionStorage.setItem('gambling', e.target.checked)
 
-    const probability = document.createElement("span")
-    probability.setAttribute('class', "topDataSpan")
-    probability.setAttribute('style', "display: inline-block; line-height: 110%; font-size: 9px; vertical-align: middle")
-    probability.innerHTML = `
-        <span id="p0"></span> &nbsp; <span id="p1"></span> &nbsp; <span id="p2"></span> &nbsp; <span id="p3"></span><br/>
-        <span id="p8"></span> &nbsp; <span id="p9"></span> &nbsp; <span id="p10"></span> &nbsp; <span id="p11"></span><br/>
-        <span id="p16"></span> &nbsp; <span id="p17"></span> &nbsp; <span id="p18"></span> &nbsp; <span id="p19"></span>
-    `
-    $(".orderListBody > .topData").appendChild(probability)
-
     const recording = document.createElement("span")
     recording.setAttribute('class', "topDataSpan")
     recording.innerHTML = `
@@ -64,6 +54,16 @@ const inject_elements = () => {
     exportdata.innerHTML = `<a id="export" href="#" onclick="return false"> Export </a>`
     $(".orderListBody > .topData").appendChild(exportdata)
     $("#export").onclick = export_data
+
+    const probability = document.createElement("span")
+    probability.setAttribute('class', "topDataSpan")
+    probability.setAttribute('style', "line-height: 125%; font-size: 9px; float: right; margin-right: 10px")
+    probability.innerHTML = `
+        <span id="p0"></span> &nbsp; <span id="p1"></span> &nbsp; <span id="p2"></span> &nbsp; <span id="p3"></span><br/>
+        <span id="p8"></span> &nbsp; <span id="p9"></span> &nbsp; <span id="p10"></span> &nbsp; <span id="p11"></span><br/>
+        <span id="p16"></span> &nbsp; <span id="p17"></span> &nbsp; <span id="p18"></span> &nbsp; <span id="p19"></span>
+    `
+    $(".orderListBody > .topData").appendChild(probability)
 }
 
 const ensure_BBO = () => $("#match_price").checked || $("#match_price").click()

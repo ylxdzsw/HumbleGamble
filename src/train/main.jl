@@ -10,7 +10,7 @@ include("model.jl")
 function read_data(f)
     kline, pulse = [], []
 
-    parse_kline(line) = push!(kline, (line["time"], line["close"] / 10_000, line["high"] / 10_000, line["low"] / 10_000, line["volume"] / 1000))
+    parse_kline(line) = push!(kline, (line["time"], line["close"] / 10_000, line["high"] / 10_000, line["low"] / 10_000, line["volume"] / 10_000))
     parse_pulse(line) = push!(pulse, (line["time"], line["index"] / 10_000, line["last_price"] / 10_000, line["total_hold"] / 10_000, line["amount24h"] / 10_000,
                                                     line["ask1"] / 10_000, line["bid1"] / 10_000, line["askd"], line["bidd"]))
 

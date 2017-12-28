@@ -65,7 +65,6 @@ function pred_loss(w, frame, pulse, y)
            -logp(p[9:11])[cind(y[3])]  + 0.1 * (p[12] - y[3])^2 +
            -logp(p[13:15])[cind(y[4])] + 0.1 * (p[16] - y[4])^2 +
            -logp(p[17:19])[cind(y[5])] + 0.1 * (p[20] - y[5])^2
-    # TODO: add regularization
 end
 
 function train(w, data, nepoch=200, μ=[0.01, 0.01, 0.005])
@@ -77,7 +76,7 @@ function train(w, data, nepoch=200, μ=[0.01, 0.01, 0.005])
             w′, loss = g(w, data[i]...)
             skip = length(data[i][2]) == 0 ? 2 : 1
             for j in 1:skip:3, (x, dx) in zip(w[j], w′[j])
-                x .-= μ[j] * dx
+                x .-= μ[j] * (dx .+ .01x)
             end
             total_loss += loss
         end
