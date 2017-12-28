@@ -13,29 +13,6 @@ const parse_depth = (li) => {
     }))
 }
 
-const depth_info = (asks, bids) => {
-    const askd = asks[asks.length-1].cumulative
-    const bidd = bids[bids.length-1].cumulative
-
-    let ask1 = asks[asks.length-1].price
-    for (const {price, cumulative} of asks) {
-        if (cumulative > 1) {
-            ask1 = price
-            break
-        }
-    }
-
-    let bid1 = bids[bids.length-1].price
-    for (const {price, cumulative} of bids) {
-        if (cumulative > 1) {
-            bid1 = price
-            break
-        }
-    }
-
-    return { ask1, bid1, askd: askd / (askd + bidd), bidd: bidd / (askd + bidd)}
-}
-
 const collect_info = () => {
     const last_price = parse_money($("#priceIndex .lastPrice > em").textContent)
     const amount24h = parse_money($("#amount24h").textContent.slice(1))
@@ -65,6 +42,12 @@ const inject_elements = () => {
 
     const probability = document.createElement("span")
     probability.setAttribute('class', "topDataSpan")
+    probability.setAttribute('style', "display: inline-block; line-height: 110%; font-size: 9px; vertical-align: middle")
+    probability.innerHTML = `
+        <span id="p0"></span> &nbsp; <span id="p1"></span> &nbsp; <span id="p2"></span> &nbsp; <span id="p3"></span><br/>
+        <span id="p8"></span> &nbsp; <span id="p9"></span> &nbsp; <span id="p10"></span> &nbsp; <span id="p11"></span><br/>
+        <span id="p16"></span> &nbsp; <span id="p17"></span> &nbsp; <span id="p18"></span> &nbsp; <span id="p19"></span>
+    `
     $(".orderListBody > .topData").appendChild(probability)
 
     const recording = document.createElement("span")
@@ -92,6 +75,15 @@ const init_fullscreen = async () => {
     await wait_until(ready)
     observe_index(on_index_update)
     inject_elements()
-    setInterval(clear_hist, 120 * 1000)
+    alignInterval(60, 2, on_candle)
+    alignInterval(2, 0, clear_hist)
+    on_candle()
 }
 
+const display_pred = (pred) => {
+    for (let i = 0; i < pred.length; i++) {
+        if ($("#p"+i)) {
+            $("#p"+i).textContent = pred[i].toFixed(4)
+        }
+    }
+}

@@ -114,3 +114,12 @@ const export_data = async () => {
 
     download(text)
 }
+
+const alignInterval = async (sec, phase, f) => {
+    const now = Date.now() / 1000 - phase
+    const n = 1 + now / sec | 0
+
+    await sleep(sec * n - now)
+    f(n)
+    alignInterval(sec, phase, f)
+}

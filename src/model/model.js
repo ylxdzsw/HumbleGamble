@@ -6,12 +6,23 @@ const kline_conv = (frame, w) => {
 }
 
 const final = (state, w) => {
-    return w[1].mul(state).add(w[2])
+    pred = w[0].mul(state).add(w[1]).data
+    for (let i = 0; i < 5; i++) {
+        s = softmax(pred.slice(4 * i, 4 * i + 3))
+        for (let j = 0; j < 3; j++) {
+            pred[4 * i + j] = s[j]
+        }
+    }
+    return [].slice.call(pred)
 }
 
 const pulse_recur = (state, pulse, w) => {
-    for (const p of pulse) {
-        state.add(w[2].mul(w[1].mul(state.cat(p)).sigm()))
-    }
+    state.add(w[1].mul(w[0].mul(state.cat(pulse)).add(w[2]).sigm()))
     return state
+}
+
+const softmax = (x) => {
+    x = x.map(Math.exp)
+    s = x.reduce((x, y) => x + y)
+    return x.map(x=>x/s)
 }

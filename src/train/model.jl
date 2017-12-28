@@ -20,7 +20,7 @@ end
 
 """
 frame: [2644 * 4]
-w: [[32 * 4], [32 * 6], [48 * 8], [64 * 8], [4], [6], [8], [8]]
+w: [[32 * 4], [32 * 6], [48 * 8], [64 * 8], [1 * 4], [1 * 6], [1 * 8], [1 * 8]]
 """
 function kline_conv(frame, w)
     conv1 = sigm.(im2col(frame) * w[1] .+ w[5]) # 2644x4 -> 660x4
@@ -41,11 +41,11 @@ end
 """
 state: [72]
 pulse: [8] * n
-w: [[8 * 80], [72 * 8]]
+w: [[8 * 80], [72 * 8], [8]]
 """
 function pulse_recur(state, pulse, w)
     for p in pulse
-        state = state .+ w[2] * sigm.(w[1] * [state; p])
+        state = state .+ w[2] * sigm.(w[1] * [state; p] .+ w[3])
     end
     state
 end
@@ -86,5 +86,3 @@ function train(w, data, nepoch=200, μ=[0.01, 0.01, 0.005])
     end
     toq()
 end
-
-# TODO: add bias for recur
