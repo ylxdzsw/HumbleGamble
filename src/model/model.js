@@ -1,10 +1,8 @@
 const kline_conv = (frame, w) => {
-    console.log(frame.im2col().mul(w[0]))
-
-    return frame.im2col().mul(w[0]).add(w[4]).sigm()
-                .im2col().mul(w[1]).add(w[5]).sigm()
-                .im2col().mul(w[2]).add(w[6]).sigm()
-                .im2col().mul(w[3]).add(w[7]).sigm().flat()
+    return frame.im2col().mul(w[0]).addv(w[4]).sigm()
+                .im2col().mul(w[1]).addv(w[5]).sigm()
+                .im2col().mul(w[2]).addv(w[6]).sigm()
+                .im2col().mul(w[3]).addv(w[7]).sigm().flat()
 }
 
 const final = (state, w) => {

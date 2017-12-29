@@ -48,6 +48,21 @@ class Mat {
     }
 
     add(b) {
+        const a = this
+
+        if (a.m != b.m || a.n != b.n)
+            throw new Error(`dimension not match cat(${a.m}x${a.n}, ${b.m}x${b.n})`)
+
+        for (let i = 0; i < a.data.length; i++)
+            a.data[i] += b.data[i]
+
+        return this
+    }
+
+    addv(b) {
+        if (b.m != 1)
+            throw new Error(`Mat::addv can only be called with a row vector`)
+
         for (let i = 0; i < this.data.length; i++)
             this.data[i] += b.data[i / this.m | 0]
 

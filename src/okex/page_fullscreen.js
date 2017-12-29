@@ -34,7 +34,7 @@ const inject_elements = () => {
     const gambling = document.createElement("span")
     gambling.setAttribute('class', "topDataSpan title2")
     gambling.innerHTML = `
-        <input type="checkbox" id="gambling" style="position: relative; top: 3px" ${sessionStorage.getItem('gambling') ? 'checked' : ''} />
+        <input type="checkbox" id="gambling" disabled style="position: relative; top: 3px" ${sessionStorage.getItem('gambling') ? 'checked' : ''} />
         <label for="gambling"> Auto Gamble </label>
     `
     $(".orderListBody > .topData").appendChild(gambling)
