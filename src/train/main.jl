@@ -48,9 +48,9 @@ end
 
 function init_weights()
     const weight_spec = [
-        [(.5, 32, 4), (.5, 32, 6), (.5, 48, 8), (.5, 64, 8), (0, 1, 4), (0, 1, 6), (0, 1, 8), (0, 1, 8)],
-        [(.2, 8, 80), (.2, 72, 8), (0, 8)],
-        [(.5, 20, 72), (0, 20)]
+        [(.8, 32, 4), (.8, 32, 6), (.8, 48, 8), (.8, 64, 8), (0, 1, 4), (0, 1, 6), (0, 1, 8), (0, 1, 8)],
+        [(.4, 8, 80), (.4, 72, 8), (0, 8)],
+        [(.6, 20, 72), (0, 20)]
     ]
 
     map(weight_spec) do specs
@@ -69,7 +69,7 @@ function write_weights(w, f)
     write(f, JSON.json(list))
 end
 
-@main function main(epoch::Int=200; slow::Bool=false)
+@main function main(epoch::Int=200)
     data = open(read_data, rel"../../data/data.json")
     w = try
         load(rel"../../data/weights.jld")["w"]
@@ -78,9 +78,7 @@ end
         init_weights()
     end
 
-    μ = [0.01, 0.01, 0.005] ./ (slow ? 1 : 5)
-
-    train(w, data, epoch, μ)
+    train(w, data, epoch)
 
     save(rel"../../data/weights.jld", "w", w)
 

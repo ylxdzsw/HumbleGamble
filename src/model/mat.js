@@ -28,7 +28,7 @@ class Mat {
                 for (let k = 0; k < a.n; k++)
                     dot += a.data[i, a.m * k] * b.data[k, b.m * j]
 
-                r.data[i + r.m * j]
+                r.data[i + r.m * j] = dot
             }
         }
 

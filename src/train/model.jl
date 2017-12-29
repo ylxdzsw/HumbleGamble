@@ -67,7 +67,7 @@ function pred_loss(w, frame, pulse, y)
            -logp(p[17:19])[cind(y[5])] + 0.1 * (p[20] - y[5])^2
 end
 
-function train(w, data, nepoch=200, μ=[0.01, 0.01, 0.005])
+function train(w, data, nepoch=200, μ=[0.02, 0.02, 0.01])
     g = gradloss(pred_loss)
     tic()
     for epoch in 1:nepoch
@@ -75,11 +75,16 @@ function train(w, data, nepoch=200, μ=[0.01, 0.01, 0.005])
         for i in 1:length(data)
             w′, loss = g(w, data[i]...)
             skip = length(data[i][2]) == 0 ? 2 : 1
-            for j in 1:skip:3, (x, dx) in zip(w[j], w′[j])
-                x .-= μ[j] * (dx .+ .01x)
+            for j in 1:skip:3, (x, dx) in zip(w[j], w′[j]) @when rand() > .5
+                x .-= μ[j] * dx
             end
             total_loss += loss
         end
+
+        # for xs in w, x in xs @when epoch != nepoch # L2 Regularization except for last epoch
+        #     x .-= .0001x
+        # end
+
         print("epoch: $epoch, loss: $total_loss, ")
         toc(); tic()
     end
