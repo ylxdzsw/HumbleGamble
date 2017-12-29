@@ -1,4 +1,5 @@
 // col major!!!
+// tested 2017.12.29
 class Mat {
     constructor(m, n, data) {
         this.m = m
@@ -26,7 +27,7 @@ class Mat {
                 let dot = 0
 
                 for (let k = 0; k < a.n; k++)
-                    dot += a.data[i, a.m * k] * b.data[k, b.m * j]
+                    dot += a.data[i + a.m * k] * b.data[k + b.m * j]
 
                 r.data[i + r.m * j] = dot
             }
@@ -48,7 +49,7 @@ class Mat {
 
     add(b) {
         for (let i = 0; i < this.data.length; i++)
-            this.data[i] += b.data[i % b.data.length]
+            this.data[i] += b.data[i / this.m | 0]
 
         return this
     }

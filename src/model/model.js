@@ -1,4 +1,6 @@
 const kline_conv = (frame, w) => {
+    console.log(frame.im2col().mul(w[0]))
+
     return frame.im2col().mul(w[0]).add(w[4]).sigm()
                 .im2col().mul(w[1]).add(w[5]).sigm()
                 .im2col().mul(w[2]).add(w[6]).sigm()
@@ -17,8 +19,6 @@ const final = (state, w) => {
 }
 
 const pulse_recur = (state, pulse, w) => {
-    console.log(w[0].mul(state.cat(pulse)).add(w[2]).sigm())
-    console.log(w[1])
     state.add(w[1].mul(w[0].mul(state.cat(pulse)).add(w[2]).sigm()))
     return state
 }
