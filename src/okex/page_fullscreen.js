@@ -31,7 +31,7 @@ const clear_hist = () => {
 }
 
 const inject_elements = () => {
-    const gambling = document.createElement("span")
+    const gambling = document.createElement('span')
     gambling.setAttribute('class', "topDataSpan title2")
     gambling.innerHTML = `
         <input type="checkbox" id="gambling" disabled style="position: relative; top: 3px" ${sessionStorage.getItem('gambling') ? 'checked' : ''} />
@@ -40,7 +40,7 @@ const inject_elements = () => {
     $(".orderListBody > .topData").appendChild(gambling)
     $("#gambling").onchange = e => sessionStorage.setItem('gambling', e.target.checked)
 
-    const recording = document.createElement("span")
+    const recording = document.createElement('span')
     recording.setAttribute('class', "topDataSpan title2")
     recording.innerHTML = `
         <input type="checkbox" id="recording" style="position: relative; top: 3px" ${sessionStorage.getItem('recording') ? 'checked' : ''} />
@@ -49,13 +49,13 @@ const inject_elements = () => {
     $(".orderListBody > .topData").appendChild(recording)
     $("#recording").onchange = e => e.target.checked ? sessionStorage.setItem('recording', '1') : sessionStorage.removeItem('recording')
 
-    const exportdata = document.createElement("span")
+    const exportdata = document.createElement('span')
     exportdata.setAttribute('class', "topDataSpan title2")
     exportdata.innerHTML = `<a id="export" href="#" onclick="return false"> Export </a>`
     $(".orderListBody > .topData").appendChild(exportdata)
     $("#export").onclick = export_data
 
-    const probability = document.createElement("span")
+    const probability = document.createElement('span')
     probability.setAttribute('class', "topDataSpan title2")
     probability.setAttribute('style', "line-height: 125%; font-size: 9px; float: right; margin-right: 10px")
     probability.innerHTML = `
@@ -64,6 +64,11 @@ const inject_elements = () => {
         <span id="p16"></span> &nbsp; <span id="p17"></span> &nbsp; <span id="p18"></span> &nbsp; <span id="p19"></span>
     `
     $(".orderListBody > .topData").appendChild(probability)
+
+    const suggestion = document.createElement('span')
+    suggestion.setAttribute('id', "suggestion")
+    suggestion.setAttribute('style', "margin-left: 40px")
+    $('#positionTab').after(suggestion)
 }
 
 const ensure_BBO = () => $("#match_price").checked || $("#match_price").click()
@@ -121,4 +126,52 @@ const display_pred = (pred) => {
             $("#p"+i).textContent = pred[i].toFixed(4)
         }
     }
+}
+
+const display_suggestion = (suggestion) => {
+    let color, text, onclick
+
+    switch (suggestion) {
+        case 2:
+            color = 'green'
+            text = "Open Long"
+            onclick = async () => {
+                await open_long()
+                await close_short()
+            }
+            break
+
+        case 1:
+            color = 'lime'
+            text = "Close Short"
+            onclick = close_short
+            break
+
+        case 0:
+            color = 'yellow'
+            text = "Hold"
+            onclick = () => 0
+            break
+
+        case -1:
+            color = 'deeppink'
+            text = "Close Long"
+            onclick = close_long
+            break
+
+        case -2:
+            color = 'red'
+            text = "Open Short"
+            onclick = async () => {
+                await open_short()
+                await close_long()
+            }
+            break
+
+        default:
+            throw new Error("unknown suggestion")
+    }
+
+    $("#suggestion").innerHTML = `<a id="execute" href="#" onclick="return false" style="color: ${color}"> Suggestion: ${text} </a>`
+    $("#execute").onclick = onclick
 }

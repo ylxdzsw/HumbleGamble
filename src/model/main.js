@@ -25,7 +25,7 @@ chrome.runtime.onMessage.addListener((data, sender, respond) => {
         case 'candle':
             frame = pack_kline(data.data)
             state = kline_conv(frame, w[0])
-            return respond({ action: 'display', data: final(state, w[2]) })
+            return respond({ action: 'pred', data: final(state, w[2]) })
 
         case 'pulse':
             if (!state) {
@@ -33,7 +33,7 @@ chrome.runtime.onMessage.addListener((data, sender, respond) => {
             } else {
                 pulse = pack_pulse(data.data)
                 state = pulse_recur(state, pulse, w[1])
-                return respond({ action: 'display', data: final(state, w[2]) })
+                return respond({ action: 'pred', data: final(state, w[2]) })
             }
 
         default:

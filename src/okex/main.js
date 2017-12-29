@@ -4,7 +4,7 @@ const on_index_update = (index) => {
     const pulse = { index, ...collect_info(), time: + new Date }
     is_recording() ? savedata('pulse', [pulse]) : console.log(pulse)
     chrome.runtime.sendMessage({ action: 'pulse', data: pulse }, ({action, data}) => {
-        action == "display" && display_pred(data)
+        action == "pred" && on_pred(data)
     })
 }
 
@@ -39,7 +39,7 @@ const on_candle = async () => {
     }
 
     chrome.runtime.sendMessage({ action: 'candle', data: kline }, ({action, data}) => {
-        action == "display" && display_pred(data)
+        action == "pred" && on_pred(data)
     })
 }
 
@@ -64,6 +64,31 @@ const depth_info = (asks, bids) => {
     }
 
     return { ask1, bid1, askd: askd / (askd + bidd), bidd: bidd / (askd + bidd)}
+}
+
+const make_suggestion = (pred) => {
+    if ([0, 4, 8, 12, 16].map(x=>pred[x]>0.3).reduce((x,y)=>x+y) >= 4) {
+        return 2
+    }
+
+    if ([2, 6, 10, 14, 18].map(x=>pred[x]>0.3).reduce((x,y)=>x+y) >= 4) {
+        return -2
+    }
+
+    if (pred[0] > 0.3 && pred[4] > 0.3) {
+        return 1
+    }
+
+    if (pred[2] > 0.3 && pred[6] > 0.3) {
+        return -1
+    }
+
+    return 0
+}
+
+const on_pred = (pred) => {
+    display_pred(pred)
+    display_suggestion(make_suggestion(pred))
 }
 
 const dispatch = async () => {

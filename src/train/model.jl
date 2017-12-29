@@ -51,66 +51,40 @@ function pulse_recur(state, pulse, w)
 end
 
 function pred_loss(w, frame, pulse, y)
-    function cind(y)
-        y >  .01 ? 1 :
-        y < -.01 ? 3 : 2
+    function acc(p, y)
+        pu, pm, pd = logp(p)
+        y >  .005 ? 2pu :
+        y < -.005 ? 2pd : pm
     end
 
     state = kline_conv(frame, w[1])
     state = pulse_recur(state, pulse, w[2])
     p = final(state, w[3])
 
-    loss = -logp(p[1:3])[cind(y[1])]   + 0.1 * (p[4]  - y[1])^2 +
-           -logp(p[5:7])[cind(y[2])]   + 0.1 * (p[8]  - y[2])^2 +
-           -logp(p[9:11])[cind(y[3])]  + 0.1 * (p[12] - y[3])^2 +
-           -logp(p[13:15])[cind(y[4])] + 0.1 * (p[16] - y[4])^2 +
-           -logp(p[17:19])[cind(y[5])] + 0.1 * (p[20] - y[5])^2
-end
-
-"alternative loss function"
-function pred_loss_alt(w, frame, pulse, y)
-    function softmax(x)
-        x = exp.(x)
-        s = sum(x)
-        x ./ s
-    end
-
-    function loss(p, y)
-        pu, _, pd = softmax(p)
-        y >  .01 ? 1-pu :
-        y < -.01 ? 1-pd :
-        y >    0 ?   pd :
-        y <    0 ?   pu : 0
-    end
-
-    state = kline_conv(frame, w[1])
-    state = pulse_recur(state, pulse, w[2])
-    p = final(state, w[3])
-
-    loss(p[1:3],   y[1]) + 0.1 * (p[4]  - y[1])^2 +
-    loss(p[5:7],   y[2]) + 0.1 * (p[8]  - y[2])^2 +
-    loss(p[9:11],  y[3]) + 0.1 * (p[12] - y[3])^2 +
-    loss(p[13:15], y[4]) + 0.1 * (p[16] - y[4])^2 +
-    loss(p[17:19], y[5]) + 0.1 * (p[20] - y[5])^2
+    -acc(p[1:3],   y[1]) + .1(p[4]  - y[1])^2 +
+    -acc(p[5:7],   y[2]) + .1(p[8]  - y[2])^2 +
+    -acc(p[9:11],  y[3]) + .1(p[12] - y[3])^2 +
+    -acc(p[13:15], y[4]) + .1(p[16] - y[4])^2 +
+    -acc(p[17:19], y[5]) + .1(p[20] - y[5])^2
 end
 
 function train(w, data, nepoch=200, μ=[0.02, 0.02, 0.01])
-    g = gradloss(pred_loss_alt)
+    g = gradloss(pred_loss)
     tic()
     for epoch in 1:nepoch
         mean_loss = 0
         for i in 1:length(data)
             w′, loss = g(w, data[i]...)
             skip = length(data[i][2]) == 0 ? 2 : 1
-            for j in 1:skip:3, (x, dx) in zip(w[j], w′[j]) @when rand() > .5
+            for j in 1:skip:3, (x, dx) in zip(w[j], w′[j])
                 x .-= μ[j] * dx
             end
             mean_loss += loss / length(data)
         end
 
-        # L2 Regularization except for last epoch
+        # L2 Regularization except for the last epoch
         for xs in w, x in xs @when epoch != nepoch
-            x .-= .005x
+            x .-= .001x
         end
 
         print("epoch: $epoch, loss: $mean_loss, ")
