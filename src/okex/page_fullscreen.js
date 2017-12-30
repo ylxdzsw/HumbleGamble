@@ -133,7 +133,7 @@ const display_suggestion = (suggestion) => {
 
     switch (suggestion) {
         case 2:
-            color = 'green'
+            color = 'lime'
             text = "Open Long"
             onclick = async () => {
                 await open_long()
@@ -142,7 +142,7 @@ const display_suggestion = (suggestion) => {
             break
 
         case 1:
-            color = 'lime'
+            color = 'green'
             text = "Close Short"
             onclick = close_short
             break
@@ -154,13 +154,13 @@ const display_suggestion = (suggestion) => {
             break
 
         case -1:
-            color = 'deeppink'
+            color = 'red'
             text = "Close Long"
             onclick = close_long
             break
 
         case -2:
-            color = 'red'
+            color = 'deeppink'
             text = "Open Short"
             onclick = async () => {
                 await open_short()

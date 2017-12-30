@@ -29,7 +29,7 @@ function read_data(f)
 
     for i in 2649:length(kline)
         if (car(kline[i]) - car(kline[i-2648])) ÷ 60_000 == 2648 # continuous
-            ps = filter(x->car(kline[i-4]) <= car(x) < car(kline[i-3]), pulse)
+            ps = filter(x->car(kline[i-8]) <= car(x) < car(kline[i-3]), pulse) # up to 5min
             ps = map(collect ∘ cdr, ps)
 
             frame = Array{f64}(2644, 4)
@@ -49,8 +49,8 @@ end
 function init_weights()
     const weight_spec = [
         [(.8, 32, 8), (.8, 64, 12), (.8, 96, 16), (.8, 128, 16), (0, 1, 8), (0, 1, 12), (0, 1, 16), (0, 1, 16)],
-        [(.4, 16, 152), (.4, 144, 16), (0, 16)],
-        [(.6, 20, 144), (0, 20)]
+        [(.2, 16, 152), (.01, 144, 16), (0, 16)],
+        [(.4, 20, 144), (0, 20)]
     ]
 
     map(weight_spec) do specs
@@ -78,7 +78,7 @@ end
         init_weights()
     end
 
-    train(w, data, epoch)
+    train(w, data, 1000 * epoch)
 
     save(rel"../../data/weights.jld", "w", w)
 

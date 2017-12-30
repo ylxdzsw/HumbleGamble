@@ -15,7 +15,7 @@ const pack_pulse = (pulse) => {
                           pulse.ask1/10000, pulse.bid1/10000, pulse.askd, pulse.bidd])
 }
 
-let state, w
+let state, w, hist = []
 
 chrome.runtime.onMessage.addListener((data, sender, respond) => {
     if (!w)
@@ -25,6 +25,14 @@ chrome.runtime.onMessage.addListener((data, sender, respond) => {
         case 'candle':
             frame = pack_kline(data.data)
             state = kline_conv(frame, w[0])
+
+            hist.push([])
+            hist.length > 4 && hist.shift()
+
+            for (const pulses of hist)
+                for (const pulse of pulses)
+                    state = pulse_recur(state, pulse, w[1])
+
             return respond({ action: 'pred', data: final(state, w[2]) })
 
         case 'pulse':
@@ -32,6 +40,7 @@ chrome.runtime.onMessage.addListener((data, sender, respond) => {
                 return respond({ action: 'nop' })
             } else {
                 pulse = pack_pulse(data.data)
+                hist[hist.length-1].push(pulse)
                 state = pulse_recur(state, pulse, w[1])
                 return respond({ action: 'pred', data: final(state, w[2]) })
             }

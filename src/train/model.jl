@@ -53,22 +53,22 @@ end
 function pred_loss(w, frame, pulse, y)
     function acc(p, y)
         pu, pm, pd = logp(p)
-        y >  .004 ? 5pu :
-        y < -.004 ? 5pd : pm
+        y >  .004 ? 2pu :
+        y < -.004 ? 2pd : pm
     end
 
     state = kline_conv(frame, w[1])
-    # state = pulse_recur(state, pulse, w[2])
+    state = pulse_recur(state, pulse, w[2])
     p = final(state, w[3])
 
-    -acc(p[1:3],   y[1]) + (p[4]  - y[1])^2 +
-    -acc(p[5:7],   y[2]) + (p[8]  - y[2])^2 +
-    -acc(p[9:11],  y[3]) + (p[12] - y[3])^2 +
-    -acc(p[13:15], y[4]) + (p[16] - y[4])^2 +
-    -acc(p[17:19], y[5]) + (p[20] - y[5])^2
+    -acc(p[1:3],   y[1]) + 5(p[4]  - y[1])^2 +
+    -acc(p[5:7],   y[2]) + 5(p[8]  - y[2])^2 +
+    -acc(p[9:11],  y[3]) + 5(p[12] - y[3])^2 +
+    -acc(p[13:15], y[4]) + 5(p[16] - y[4])^2 +
+    -acc(p[17:19], y[5]) + 5(p[20] - y[5])^2
 end
 
-function train(w, data, nepoch=200_000, μ=[0.0005, 0.0005, 0.0001])
+function train(w, data, nepoch=200_000, μ=[.001, .001, .0002])
     g = gradloss(pred_loss)
     mean_loss = 0
     tic()
@@ -77,23 +77,7 @@ function train(w, data, nepoch=200_000, μ=[0.0005, 0.0005, 0.0001])
         d = rand(data)
         w′, loss = g(w, d...)
 
-        if rand() > .99 && (rand() > .95 || abs(d[3][1]) > .005)
-            state = kline_conv(d[1], w[1])
-            p = final(state, w[3])
-
-            println("==========")
-            println(exp.(logp(p[1:3])))
-            println(d[3][1])
-            println(state[1:8])
-            println(sum(abs.(w[1][1])))
-            println(sum(abs.(w[3][1])))
-            println(sum(abs.(w[3][2])))
-            println(sum(abs.(w′[1][2])))
-            println(sum(abs.(w′[1][4])))
-            println(sum(abs.(w′[3][1])))
-        end
-
-        skip = 2 #length(data[i][2]) == 0 ? 2 : 1
+        skip = length(d[2]) == 0 ? 2 : 1
         for j in 1:skip:3, (x, dx) in zip(w[j], w′[j])
             x .-= μ[j] * dx
         end
@@ -103,7 +87,9 @@ function train(w, data, nepoch=200_000, μ=[0.0005, 0.0005, 0.0001])
         if epoch % 1000 == 0
             # L2 Regularization except for the last epoch
             for xs in w, x in xs @when epoch != nepoch
-                x .-= .0002x
+                λ = x == w[1][1] || x == w[2][1] ? .001 :
+                                    x == w[2][2] ? .005 : .002
+                x .-= λ * x
             end
 
             print("epoch: $epoch, loss: $mean_loss, ")
