@@ -69,7 +69,7 @@ function write_weights(w, f)
     write(f, JSON.json(list))
 end
 
-@main function main(epoch::Int=200)
+@main function main(epoch::Int=50000)
     data = open(read_data, rel"../../data/data.json")
     w = try
         load(rel"../../data/weights.jld")["w"]
@@ -78,7 +78,7 @@ end
         init_weights()
     end
 
-    train(w, data, 1000 * epoch)
+    train(w, data, epoch)
 
     save(rel"../../data/weights.jld", "w", w)
 

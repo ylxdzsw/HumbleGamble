@@ -67,19 +67,19 @@ const depth_info = (asks, bids) => {
 }
 
 const make_suggestion = (pred) => {
-    if ([0, 4, 8, 12, 16].map(x=>pred[x]>0.3).reduce((x,y)=>x+y) >= 4) {
+    if ((pred[0] > 0.2) + (pred[4] > 0.39) + (pred[8] > 0.5) + (pred[12] > 0.57) + (pred[16] > 0.6) >= 4) {
         return 2
     }
 
-    if ([2, 6, 10, 14, 18].map(x=>pred[x]>0.3).reduce((x,y)=>x+y) >= 4) {
+    if ((pred[2] > 0.2) + (pred[6] > 0.39) + (pred[10] > 0.5) + (pred[14] > 0.57) + (pred[18] > 0.6) >= 4) {
         return -2
     }
 
-    if (pred[0] > 0.3 && pred[4] > 0.3) {
+    if (pred[0] > pred[2] && pred[4] > 0.33) {
         return 1
     }
 
-    if (pred[2] > 0.3 && pred[6] > 0.3) {
+    if (pred[2] > pred[0] && pred[6] > 0.33) {
         return -1
     }
 

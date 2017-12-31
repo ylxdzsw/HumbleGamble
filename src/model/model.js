@@ -17,7 +17,7 @@ const final = (state, w) => {
 }
 
 const pulse_recur = (state, pulse, w) => {
-    // state.add(w[1].mul(w[0].mul(state.cat(pulse)).add(w[2]).sigm()))
+    state.add(w[1].mul(w[0].mul(state.cat(pulse)).add(w[2]).sigm()))
     return state
 }
 

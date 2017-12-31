@@ -85,10 +85,10 @@ function train(w, data, nepoch=200_000, μ=[.001, .001, .0002])
         mean_loss += loss / 1000
 
         if epoch % 1000 == 0
-            # L2 Regularization except for the last epoch
+            # L2 Regularization except for the last batch
             for xs in w, x in xs @when epoch != nepoch
-                λ = x == w[1][1] || x == w[2][1] ? .001 :
-                                    x == w[2][2] ? .005 : .002
+                λ = x == w[1][1] || x == w[2][1] ? .0001 :
+                                    x == w[2][2] ? .0008 : .0002
                 x .-= λ * x
             end
 
