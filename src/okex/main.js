@@ -3,9 +3,7 @@
 const on_index_update = (index) => {
     const pulse = { index, ...collect_info(), time: + new Date }
     is_recording() ? savedata('pulse', [pulse]) : console.log(pulse)
-    chrome.runtime.sendMessage({ action: 'pulse', data: pulse }, ({action, data}) => {
-        action == "pred" && on_pred(data)
-    })
+    chrome.runtime.sendMessage({ action: 'pulse', data: pulse }, handle_rpc)
 }
 
 const get_kline = async () => {
@@ -38,9 +36,7 @@ const on_candle = async () => {
         return on_candle()
     }
 
-    chrome.runtime.sendMessage({ action: 'candle', data: kline }, ({action, data}) => {
-        action == "pred" && on_pred(data)
-    })
+    chrome.runtime.sendMessage({ action: 'candle', data: kline }, handle_rpc)
 }
 
 const depth_info = (asks, bids) => {
@@ -66,29 +62,25 @@ const depth_info = (asks, bids) => {
     return { ask1, bid1, askd: askd / (askd + bidd), bidd: bidd / (askd + bidd)}
 }
 
-const make_suggestion = (pred) => {
-    if ((pred[0] > 0.2) + (pred[4] > 0.39) + (pred[8] > 0.5) + (pred[12] > 0.57) + (pred[16] > 0.6) >= 4) {
-        return 2
+const handle_rpc = (rpcs) => {
+    for (const {action, data} of rpcs) {
+        switch (action) {
+            case 'prediction':
+                display_pred(data)
+                break
+
+            case 'suggestion':
+                display_suggestion(data)
+                break
+
+            case 'gamble':
+                is_gambling() && gamble(data)
+                break
+
+            default:
+                throw new Error("unknown action " + action)
+        }
     }
-
-    if ((pred[2] > 0.2) + (pred[6] > 0.39) + (pred[10] > 0.5) + (pred[14] > 0.57) + (pred[18] > 0.6) >= 4) {
-        return -2
-    }
-
-    if (pred[0] > pred[2] && pred[4] > 0.33) {
-        return 1
-    }
-
-    if (pred[2] > pred[0] && pred[6] > 0.33) {
-        return -1
-    }
-
-    return 0
-}
-
-const on_pred = (pred) => {
-    display_pred(pred)
-    display_suggestion(make_suggestion(pred))
 }
 
 const dispatch = async () => {

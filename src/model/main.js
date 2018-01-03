@@ -33,16 +33,29 @@ chrome.runtime.onMessage.addListener((data, sender, respond) => {
                 for (const pulse of pulses)
                     state = pulse_recur(state, pulse, w[1])
 
-            return respond({ action: 'pred', data: final(state, w[2]) })
+            pred = final(state, w[2])
+            suggestion = decide(pred, w[3])
+
+            return respond([
+                { action: 'prediction', data: predict(pred) },
+                { action: 'suggestion', data: softmax(suggestion) },
+                { action: 'gamble', data: suggestion.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0) }
+            ])
 
         case 'pulse':
             if (!state) {
-                return respond({ action: 'nop' })
+                return respond([])
             } else {
                 pulse = pack_pulse(data.data)
                 hist[hist.length-1].push(pulse)
                 state = pulse_recur(state, pulse, w[1])
-                return respond({ action: 'pred', data: final(state, w[2]) })
+                pred = final(state, w[2])
+                suggestion = decide(pred, w[3])
+
+                return respond([
+                    { action: 'prediction', data: predict(pred) },
+                    { action: 'suggestion', data: softmax(suggestion) }
+                ])
             }
 
         default:

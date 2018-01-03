@@ -34,7 +34,7 @@ const inject_elements = () => {
     const gambling = document.createElement('span')
     gambling.setAttribute('class', "topDataSpan title2")
     gambling.innerHTML = `
-        <input type="checkbox" id="gambling" disabled style="position: relative; top: 3px" ${sessionStorage.getItem('gambling') ? 'checked' : ''} />
+        <input type="checkbox" id="gambling" style="position: relative; top: 3px" ${sessionStorage.getItem('gambling') ? 'checked' : ''} />
         <label for="gambling"> Auto Gamble </label>
     `
     $(".orderListBody > .topData").appendChild(gambling)
@@ -129,49 +129,21 @@ const display_pred = (pred) => {
 }
 
 const display_suggestion = (suggestion) => {
-    let color, text, onclick
+    const i = suggestion.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0)
 
-    switch (suggestion) {
-        case 2:
-            color = 'lime'
-            text = "Open Long"
-            onclick = async () => {
-                await open_long()
-                await close_short()
-            }
-            break
+    const el = [
+        { color: 'lime',     text: "Open Long",   onclick: async () => { await open_long(); await close_short() } },
+        { color: 'green',    text: "Close Short", onclick: close_short },
+        { color: 'yellow',   text: "Hold",        onclick: () => 0 },
+        { color: 'red',      text: "Close Long",  onclick: close_long },
+        { color: 'deeppink', text: "Open Short",  onclick: async () => { await open_short(); await close_long() } }
+    ][i]
 
-        case 1:
-            color = 'green'
-            text = "Close Short"
-            onclick = close_short
-            break
-
-        case 0:
-            color = 'yellow'
-            text = "Hold"
-            onclick = () => 0
-            break
-
-        case -1:
-            color = 'red'
-            text = "Close Long"
-            onclick = close_long
-            break
-
-        case -2:
-            color = 'deeppink'
-            text = "Open Short"
-            onclick = async () => {
-                await open_short()
-                await close_long()
-            }
-            break
-
-        default:
-            throw new Error("unknown suggestion")
-    }
-
-    $("#suggestion").innerHTML = `<a id="execute" href="#" onclick="return false" style="color: ${color}"> Suggestion: ${text} </a>`
+    $("#suggestion").innerHTML = `<a id="execute" href="#" onclick="return false" style="color: ${el.color}"> Suggestion: ${el.text} </a>
+                                  <span style="font-size: 10px; margin-left: 20px"> ${suggestion.map(x=>x.toFixed(4)).join(' &nbsp; ')} </span>`
     $("#execute").onclick = onclick
+}
+
+const gamble = (order) => {
+    console.log(order)
 }

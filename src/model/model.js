@@ -5,8 +5,14 @@ const kline_conv = (frame, w) => {
                 .im2col().mul(w[3]).addv(w[7]).sigm().flat()
 }
 
-const final = (state, w) => {
-    pred = w[0].mul(state).add(w[1]).data
+const final = (state, w) => w[0].mul(state).add(w[1])
+
+const pulse_recur = (state, pulse, w) => state.add(w[1].mul(w[0].mul(state.cat(pulse)).add(w[2]).sigm()))
+
+const decide = (pred, w) => [].slice.call(w[2].mul(w[0].mul(pred).add(w[1]).sigm()).add(w[3]).data)
+
+const predict = (pred) => {
+    pred = pred.data
     for (let i = 0; i < 5; i++) {
         s = softmax(pred.slice(4 * i, 4 * i + 3))
         for (let j = 0; j < 3; j++) {
@@ -14,11 +20,6 @@ const final = (state, w) => {
         }
     }
     return [].slice.call(pred)
-}
-
-const pulse_recur = (state, pulse, w) => {
-    state.add(w[1].mul(w[0].mul(state.cat(pulse)).add(w[2]).sigm()))
-    return state
 }
 
 const softmax = (x) => {
