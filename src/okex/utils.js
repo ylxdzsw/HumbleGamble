@@ -120,6 +120,9 @@ const alignInterval = async (sec, phase, f) => {
     const n = 1 + now / sec | 0
 
     await sleep(sec * n - now)
-    f(n)
-    alignInterval(sec, phase, f)
+    try {
+        f(n)
+    } finally {
+        alignInterval(sec, phase, f)
+    }
 }

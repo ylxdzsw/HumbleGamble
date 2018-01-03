@@ -6,7 +6,7 @@ function decide(pred, w)
     logp(w[3] * sigm.(w[1] * pred .+ w[2]) .+ w[4])
 end
 
-const fee_rate = 1 - 0.0003 # actual fee is 0.00015
+const fee_rate = 1 - 0.0005 # actual fee is 0.00015
 
 # default trading is 1 BTC, which is 0.1 BTC with 10x leverage.
 function walk_profit(w, ap)

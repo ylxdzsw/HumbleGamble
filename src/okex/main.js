@@ -2,6 +2,7 @@
 
 const init_backend = () => {
     chrome.runtime.sendMessage({ action: 'init' })
+    sessionStorage.setItem('inited', '1')
 }
 
 const on_index_update = (index) => {
@@ -92,7 +93,7 @@ const dispatch = async () => {
         init_fullscreen()
     }
 
-    init_backend()
+    sessionStorage.getItem('inited') || init_backend()
 }
 
 setTimeout(dispatch, 0)
