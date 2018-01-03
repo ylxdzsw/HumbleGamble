@@ -1,5 +1,9 @@
 "use strict"
 
+const init_backend = () => {
+    chrome.runtime.sendMessage({ action: 'init' })
+}
+
 const on_index_update = (index) => {
     const pulse = { index, ...collect_info(), time: + new Date }
     is_recording() ? savedata('pulse', [pulse]) : console.log(pulse)
@@ -87,6 +91,8 @@ const dispatch = async () => {
     if (location.href == "https://www.okex.com/future/futureFullNew.do?symbol=0") {
         init_fullscreen()
     }
+
+    init_backend()
 }
 
 setTimeout(dispatch, 0)

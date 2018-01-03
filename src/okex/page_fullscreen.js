@@ -103,7 +103,7 @@ const close_long = async () => {
     for (const row of rows) {
         if (row.children[2].textContent == 'Long') {
             row.querySelector(".close_market").click()
-            await wait_until(()=>!$("#futureFullTipsPop").getAttribute('style'))
+            await wait_until(()=>!$("#futureFullTipsPop").getAttribute('style').includes("none"))
             $("#sure").click()
         }
     }
@@ -114,7 +114,7 @@ const close_short = async () => {
     for (const row of rows) {
         if (row.children[2].textContent == 'Short') {
             row.querySelector(".close_market").click()
-            await wait_until(()=>!$("#futureFullTipsPop").getAttribute('style'))
+            await wait_until(()=>!$("#futureFullTipsPop").getAttribute('style').includes("none"))
             $("#sure").click()
         }
     }

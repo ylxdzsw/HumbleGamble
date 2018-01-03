@@ -36,11 +36,16 @@ chrome.runtime.onMessage.addListener((data, sender, respond) => {
             pred = final(state, w[2])
             suggestion = decide(pred, w[3])
 
-            return respond([
+            const rpcs = [
                 { action: 'prediction', data: predict(pred) },
-                { action: 'suggestion', data: softmax(suggestion) },
-                { action: 'gamble', data: suggestion.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0) }
-            ])
+                { action: 'suggestion', data: softmax(suggestion) }
+            ]
+
+            if (hist.length >= 4) {
+                rpcs.push({ action: 'gamble', data: suggestion.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0) })
+            }
+
+            return respond(rpcs)
 
         case 'pulse':
             if (!state) {
@@ -57,6 +62,11 @@ chrome.runtime.onMessage.addListener((data, sender, respond) => {
                     { action: 'suggestion', data: softmax(suggestion) }
                 ])
             }
+
+        case 'init':
+            state = null
+            hist = []
+            return
 
         default:
             throw new Error("fuck")
