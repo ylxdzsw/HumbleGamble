@@ -38,7 +38,7 @@ const inject_elements = () => {
         <label for="gambling"> Auto Gamble </label>
     `
     $(".orderListBody > .topData").appendChild(gambling)
-    $("#gambling").onchange = e => sessionStorage.setItem('gambling', e.target.checked)
+    $("#gambling").onchange = e => e.target.checked ? sessionStorage.setItem('gambling', '1') : sessionStorage.removeItem('gambling')
 
     const recording = document.createElement('span')
     recording.setAttribute('class', "topDataSpan title2")
@@ -132,18 +132,24 @@ const display_suggestion = (suggestion) => {
     const i = suggestion.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0)
 
     const el = [
-        { color: 'lime',     text: "Open Long",   onclick: async () => { await open_long(); await close_short() } },
+        { color: 'lime',     text: "Open Long",   onclick: () => { open_long(); close_short() } },
         { color: 'green',    text: "Close Short", onclick: close_short },
         { color: 'yellow',   text: "Hold",        onclick: () => 0 },
         { color: 'red',      text: "Close Long",  onclick: close_long },
-        { color: 'deeppink', text: "Open Short",  onclick: async () => { await open_short(); await close_long() } }
+        { color: 'deeppink', text: "Open Short",  onclick: () => { open_short(); close_long() } }
     ][i]
 
     $("#suggestion").innerHTML = `<a id="execute" href="#" onclick="return false" style="color: ${el.color}"> Suggestion: ${el.text} </a>
                                   <span style="font-size: 10px; margin-left: 20px"> ${suggestion.map(x=>x.toFixed(4)).join(' &nbsp; ')} </span>`
-    $("#execute").onclick = onclick
+    $("#execute").onclick = el.onclick
 }
 
 const gamble = (order) => {
-    console.log(order)
+    [
+        () => { open_long(); close_short() },
+        close_short,
+        () => 0,
+        close_long,
+        () => { open_short(); close_long() }
+    ][order]()
 }

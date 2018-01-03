@@ -36,7 +36,7 @@ function walk_profit(w, ap)
 
     p = mapfoldl(+, ap) do x
         acts, price = x
-        act = sample(1:5, pweights(exp.(getval(acts)) .+ .1))
+        act = sample(1:5, pweights(exp.(getval(acts)) .+ .01))
         act == 1 ? open_long(price)   :
         act == 2 ? close_short(price) :
         act == 4 ? close_long(price)  :
@@ -64,7 +64,7 @@ function walk_loss(w, data, total_balance)
     sum([p * (balance - mb) for (p, balance) in seq])
 end
 
-function train_policy(w, data, nepoch=40_000, μ=.00001)
+function train_policy(w, data, nepoch=40_000, μ=.000005)
     g = grad(walk_loss)
     total_balance = Ref(0.)
     tic()
@@ -76,10 +76,10 @@ function train_policy(w, data, nepoch=40_000, μ=.00001)
         if epoch % 1000 == 0
             # L2 Regularization except for the last batch
             for x in w @when epoch != nepoch
-                x .-= .0002x
+                x .-= .0001x
             end
 
-            print("epoch: $epoch, balance: $(10total_balance[]), ") # * 10000 to get the actual quantity
+            print("epoch: $epoch, balance: $(10total_balance[]), ") # * 10000 to get the actual quantity in USD
             toc(); tic()
 
             total_balance[] = 0
