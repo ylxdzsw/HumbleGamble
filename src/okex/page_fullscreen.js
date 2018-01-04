@@ -86,16 +86,22 @@ const init_fullscreen = async () => {
     on_candle()
 }
 
-const open_long = (x=0.1) => {
+const open_long = () => {
+    if ([].some.call($("#positoin").children, (x) => x.children[2].textContent == 'Long'))
+        return
     ensure_BBO()
-    set_amount(x)
+    set_amount(0.1)
     $("[value='Open Long']").click()
+    close_short()
 }
 
-const open_short = (x=0.1) => {
+const open_short = () => {
+    if ([].some.call($("#positoin").children, (x) => x.children[2].textContent == 'Long'))
+        return
     ensure_BBO()
-    set_amount(x)
+    set_amount(0.1)
     $("[value='Open Short']").click()
+    close_long()
 }
 
 const close_long = async () => {
@@ -132,11 +138,11 @@ const display_suggestion = (suggestion) => {
     const i = suggestion.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0)
 
     const el = [
-        { color: 'lime',     text: "Open Long",   onclick: () => { open_long(); close_short() } },
+        { color: 'lime',     text: "Open Long",   onclick: open_long },
         { color: 'green',    text: "Close Short", onclick: close_short },
         { color: 'yellow',   text: "Hold",        onclick: () => 0 },
         { color: 'red',      text: "Close Long",  onclick: close_long },
-        { color: 'deeppink', text: "Open Short",  onclick: () => { open_short(); close_long() } }
+        { color: 'deeppink', text: "Open Short",  onclick: open_short }
     ][i]
 
     $("#suggestion").innerHTML = `<a id="execute" href="#" onclick="return false" style="color: ${el.color}"> Suggestion: ${el.text} </a>
@@ -146,10 +152,10 @@ const display_suggestion = (suggestion) => {
 
 const gamble = (order) => {
     [
-        () => { open_long(); close_short() },
+        open_long,
         close_short,
         () => 0,
         close_long,
-        () => { open_short(); close_long() }
+        open_short
     ][order]()
 }

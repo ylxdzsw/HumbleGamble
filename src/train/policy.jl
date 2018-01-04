@@ -12,13 +12,13 @@ const fee_rate = 1 - 0.0005 # actual fee is 0.00015
 function walk_profit(w, ap)
     balance, position = 0, 0 # the virtual balance in the deliver time. we don't track the current equity
 
-    open_long(price) = begin
+    open_long(price) = if position <= 0
         close_short(price)
         balance -= price
         position += fee_rate
     end
 
-    open_short(price) = begin
+    open_short(price) = if position >= 0
         close_long(price)
         balance += price * fee_rate
         position -= 1
@@ -44,10 +44,7 @@ function walk_profit(w, ap)
         acts[act]
     end
 
-    close_long(cadr(ap[end]))
-    close_short(cadr(ap[end]))
-
-    p, balance
+    p, balance + position * cadr(ap[end])
 end
 
 function dicide_segment(data, w)

@@ -32,7 +32,7 @@ pred(x, w) = begin
     final(state, w[3]), frame[end, 1]
 end
 
-@main function policy(epoch::Int=10000)
+@main function policy(epoch::Int=20000)
     data = open(read_data, rel"../../data/data.json")
 
     @load rel"../../data/weights.jld" w
