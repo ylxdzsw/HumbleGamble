@@ -77,52 +77,57 @@ const set_amount = (x) => $("#amount").value = x.toFixed(4)
 const is_recording = () => $("#recording") && $("#recording").checked
 const is_gambling = () => $("#gambling") && $("#gambling").checked
 
-const init_fullscreen = async () => {
-    await wait_until(ready)
-    observe_index(on_index_update)
-    inject_elements()
-    alignInterval(60, 2, on_candle)
-    alignInterval(120, 0, clear_hist)
-    on_candle()
-}
+const long = async () => {
+    let open = true
 
-const open_long = () => {
-    if ([].some.call($("#positoin").children, (x) => x.children[2].textContent == 'Long'))
-        return
-    ensure_BBO()
-    set_amount(0.1)
-    $("[value='Open Long']").click()
-    close_short()
-}
+    for (const x of $("#positoin").children) {
+        switch (x.children[2].textContent) {
+            case 'Long':
+                open = false
+                break
 
-const open_short = () => {
-    if ([].some.call($("#positoin").children, (x) => x.children[2].textContent == 'Long'))
-        return
-    ensure_BBO()
-    set_amount(0.1)
-    $("[value='Open Short']").click()
-    close_long()
-}
+            case 'Short':
+                row.querySelector(".close_market").click()
+                await wait_until(()=>!$("#futureFullTipsPop").getAttribute('style').includes("none"))
+                $("#sure").click()
+                break
 
-const close_long = async () => {
-    const rows = $("#positoin").children // this is OKEx's typo
-    for (const row of rows) {
-        if (row.children[2].textContent == 'Long') {
-            row.querySelector(".close_market").click()
-            await wait_until(()=>!$("#futureFullTipsPop").getAttribute('style').includes("none"))
-            $("#sure").click()
+            default:
+                throw new Error("Unknown contract type")
         }
+    }
+
+    if (open) {
+        ensure_BBO()
+        set_amount(0.1)
+        $("[value='Open Long']").click()
     }
 }
 
-const close_short = async () => {
-    const rows = $("#positoin").children // this is OKEx's typo
-    for (const row of rows) {
-        if (row.children[2].textContent == 'Short') {
-            row.querySelector(".close_market").click()
-            await wait_until(()=>!$("#futureFullTipsPop").getAttribute('style').includes("none"))
-            $("#sure").click()
+const short = async () => {
+    let open = true
+
+    for (const x of $("#positoin").children) {
+        switch (x.children[2].textContent) {
+            case 'Short':
+                open = false
+                break
+
+            case 'Long':
+                row.querySelector(".close_market").click()
+                await wait_until(()=>!$("#futureFullTipsPop").getAttribute('style').includes("none"))
+                $("#sure").click()
+                break
+
+            default:
+                throw new Error("Unknown contract type")
         }
+    }
+
+    if (open) {
+        ensure_BBO()
+        set_amount(0.1)
+        $("[value='Open Short']").click()
     }
 }
 
@@ -135,27 +140,24 @@ const display_pred = (pred) => {
 }
 
 const display_suggestion = (suggestion) => {
-    const i = suggestion.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0)
-
     const el = [
-        { color: 'lime',     text: "Open Long",   onclick: open_long },
-        { color: 'green',    text: "Close Short", onclick: close_short },
-        { color: 'yellow',   text: "Hold",        onclick: () => 0 },
-        { color: 'red',      text: "Close Long",  onclick: close_long },
-        { color: 'deeppink', text: "Open Short",  onclick: open_short }
-    ][i]
+        { color: 'lime',   text: "Long",  onclick: long },
+        { color: 'yellow', text: "Hold",  onclick: () => 0 },
+        { color: 'red',    text: "Short", onclick: short }
+    ][suggestion.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0)]
 
     $("#suggestion").innerHTML = `<a id="execute" href="#" onclick="return false" style="color: ${el.color}"> Suggestion: ${el.text} </a>
                                   <span style="font-size: 10px; margin-left: 20px"> ${suggestion.map(x=>x.toFixed(4)).join(' &nbsp; ')} </span>`
     $("#execute").onclick = el.onclick
 }
 
-const gamble = (order) => {
-    [
-        open_long,
-        close_short,
-        () => 0,
-        close_long,
-        open_short
-    ][order]()
+const gamble = (order) => [long, () => 0, short][order]()
+
+const init_fullscreen = async () => {
+    await wait_until(ready)
+    observe_index(on_index_update)
+    inject_elements()
+    alignInterval(60, 2, on_candle)
+    alignInterval(120, 0, clear_hist)
+    on_candle()
 }
