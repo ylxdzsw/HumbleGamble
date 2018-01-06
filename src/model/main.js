@@ -1,3 +1,6 @@
+"use strict"
+
+// tested 2018.1.6
 const pack_kline = (kline) => {
     const len = kline.length
     const frame = new Mat(len, 4)
@@ -23,8 +26,7 @@ chrome.runtime.onMessage.addListener((data, sender, respond) => {
 
     switch (data.action) {
         case 'candle':
-            frame = pack_kline(data.data)
-            state = kline_conv(frame, w[0])
+            state = kline_conv(pack_kline(data.data), w[0])
 
             hist.push([])
             hist.length > 4 && hist.shift()
@@ -33,8 +35,8 @@ chrome.runtime.onMessage.addListener((data, sender, respond) => {
                 for (const pulse of pulses)
                     state = pulse_recur(state, pulse, w[1])
 
-            pred = final(state, w[2])
-            suggestion = decide(pred, w[3])
+            const pred = final(state, w[2])
+            const suggestion = decide(pred, w[3])
 
             const rpcs = [
                 { action: 'prediction', data: predict(pred) },
@@ -51,11 +53,12 @@ chrome.runtime.onMessage.addListener((data, sender, respond) => {
             if (!state) {
                 return respond([])
             } else {
-                pulse = pack_pulse(data.data)
+                const pulse = pack_pulse(data.data)
                 hist[hist.length-1].push(pulse)
                 state = pulse_recur(state, pulse, w[1])
-                pred = final(state, w[2])
-                suggestion = decide(pred, w[3])
+
+                const pred = final(state, w[2])
+                const suggestion = decide(pred, w[3])
 
                 return respond([
                     { action: 'prediction', data: predict(pred) },

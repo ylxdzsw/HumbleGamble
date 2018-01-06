@@ -1,3 +1,5 @@
+#!/usr/bin/env julia
+
 using OhMyJulia
 using AutoGrad
 using Knet

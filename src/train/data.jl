@@ -64,7 +64,7 @@ function init_weights()
 end
 
 function write_weights(w, f)
-    f << "load_weights=()=>["
+    f << "const load_weights=()=>["
     for i in 1:4
         f << '['
         for x in w[i]
