@@ -12,18 +12,18 @@ const pulse_recur = (state, pulse, w) => state.add(w[1].mul(w[0].mul(state.cat(p
 const decide = (pred, w) => [].slice.call(w[2].mul(w[0].mul(pred).add(w[1]).sigm()).add(w[3]).data)
 
 const predict = (pred) => {
-    pred = pred.data
+    pred = [].slice.call(pred.data)
     for (let i = 0; i < 5; i++) {
         s = softmax(pred.slice(4 * i, 4 * i + 3))
         for (let j = 0; j < 3; j++) {
             pred[4 * i + j] = s[j]
         }
     }
-    return [].slice.call(pred)
+    return pred
 }
 
 const softmax = (x) => {
     x = x.map(Math.exp)
     s = x.reduce((x, y) => x + y)
-    return x.map(x=>x/s)
+    return x.map(x => x / s)
 }

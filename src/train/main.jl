@@ -10,8 +10,19 @@ include("data.jl")
 include("predict.jl")
 include("policy.jl")
 
-@main function predict(epoch::Int=50000)
-    data = open(read_data, rel"../../data/data.json")
+function get_data(fs)
+    if length(fs) > 0
+        data = [map(f->open(read_data, f), fs)...;]
+        @save rel"../../data/data.jld" data
+    else
+        @load rel"../../data/data.jld" data
+    end
+
+    data
+end
+
+@main function predict(epoch::Int=50000; data::Vector{String}=[])
+    data = get_data(data)
 
     @load rel"../../data/weights.jld" w
 
@@ -32,8 +43,8 @@ pred(x, w) = begin
     final(state, w[3]), frame[end, 1]
 end
 
-@main function policy(epoch::Int=20000)
-    data = open(read_data, rel"../../data/data.json")
+@main function policy(epoch::Int=20000; data::Vector{String}=[])
+    data = get_data(data)
 
     @load rel"../../data/weights.jld" w
 

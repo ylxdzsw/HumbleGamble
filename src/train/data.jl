@@ -73,4 +73,3 @@ function write_weights(w, f)
         f << ']' << (i == 4 ? ']' : ',')
     end
 end
-

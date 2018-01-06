@@ -6,7 +6,7 @@ const init_backend = () => {
 }
 
 const on_index_update = (index) => {
-    const pulse = { index, ...collect_info(), time: + new Date }
+    const pulse = { index, contract: current_contract(), ...collect_info(), time: + new Date }
     is_recording() ? savedata('pulse', [pulse]) : console.log(pulse)
     chrome.runtime.sendMessage({ action: 'pulse', data: pulse }, handle_rpc)
 }
@@ -21,7 +21,8 @@ const get_kline = async () => {
                      (get_kline.kline ? "&since=" + get_kline.kline[get_kline.kline.length-1].time : '')
 
         get_kline.queue = okget(path).then((data) => {
-            const kline = JSON.parse(data).map(([time, open, high, low, close, volume]) => ({ time, high, low, close, volume })).slice(0, -1)
+            const kline = JSON.parse(data).map(([time, open, high, low, close, volume]) =>
+                ({ time, high, low, close, volume, contract: current_contract() })).slice(0, -1)
 
             is_recording() && savedata('kline', kline)
             delete get_kline.queue
@@ -89,11 +90,17 @@ const handle_rpc = (rpcs) => {
 }
 
 const dispatch = async () => {
-    if (location.href == "https://www.okex.com/future/futureFullNew.do?symbol=0") {
-        init_fullscreen()
+    switch (false) {
+        case !(location.href == "https://www.okex.com/future/futureFullNew.do?symbol=0"):
+            init_fullscreen()
+            break
+
+        default:
+            return
     }
 
     sessionStorage.getItem('inited') || init_backend()
+
 }
 
 setTimeout(dispatch, 0)

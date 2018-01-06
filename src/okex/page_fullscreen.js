@@ -1,4 +1,4 @@
-const ready = () => ["#priceIndex .indexNumber > em", ".orderListBody > .topData"].map($).every(x=>x)
+const ready = () => ["#priceIndex .indexNumber > em", ".orderListBody > .topData", ".contract.cur"].map($).every(x=>x)
 
 const observe_index = (cb) => {
     const el = $("#priceIndex .indexNumber > em")
@@ -77,6 +77,33 @@ const set_amount = (x) => $("#amount").value = x.toFixed(4)
 const is_recording = () => $("#recording") && $("#recording").checked
 const is_gambling = () => $("#gambling") && $("#gambling").checked
 
+const disable_buttons = () => {
+    is_recording() && $("#recording").click()
+    $("#recording").disabled = true
+
+    is_gambling() && $("#gambling").click()
+    $("#gambling").disabled = true
+
+    init_backend()
+}
+
+const current_contract = () => {
+    const el = $(".contract.cur")
+    if (el.getAttribute('type') != '1') {
+        disable_buttons()
+        throw new Error("not weekly contract")
+    }
+
+    const m = (new Date).toISOString().match(/\d{4}-(\d\d)-(\d\d)T(\d\d)/)
+    const contract = el.textContent
+    if (m[1]+m[2] == contract.slice(3) && (m[3] >= '02' || m[3] <= '09')) {
+        disable_buttons()
+        throw new Error("around delivery")
+    }
+
+    return contract
+}
+
 const long = async () => {
     let open = true
 
@@ -87,7 +114,7 @@ const long = async () => {
                 break
 
             case 'Short':
-                row.querySelector(".close_market").click()
+                x.querySelector(".close_market").click()
                 await wait_until(()=>!$("#futureFullTipsPop").getAttribute('style').includes("none"))
                 $("#sure").click()
                 break
@@ -99,7 +126,7 @@ const long = async () => {
 
     if (open) {
         ensure_BBO()
-        set_amount(0.1)
+        set_amount(0.2)
         $("[value='Open Long']").click()
     }
 }
@@ -114,7 +141,7 @@ const short = async () => {
                 break
 
             case 'Long':
-                row.querySelector(".close_market").click()
+                x.querySelector(".close_market").click()
                 await wait_until(()=>!$("#futureFullTipsPop").getAttribute('style').includes("none"))
                 $("#sure").click()
                 break
@@ -126,7 +153,7 @@ const short = async () => {
 
     if (open) {
         ensure_BBO()
-        set_amount(0.1)
+        set_amount(0.02)
         $("[value='Open Short']").click()
     }
 }

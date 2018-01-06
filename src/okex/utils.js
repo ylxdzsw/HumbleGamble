@@ -2,10 +2,10 @@ const $ = x => document.querySelector(x)
 
 const sleep = x => new Promise(resolve => setTimeout(resolve, 1000 * x))
 
-const download = (str) => {
+const download = (str, name) => {
     const url = URL.createObjectURL(new Blob([str], { type: "application/json" }))
     const el = document.createElement('a')
-    el.download = "data.json"
+    el.download = name + '.json'
     el.href = url
     el.click()
 }
@@ -31,7 +31,6 @@ const wait_time_out = (p, t=2) => new Promise((resolve, reject) => {
 
 const wait_until = async (cond) => {
     while (!cond()) {
-        console.log("not yet")
         await sleep(0.02)
     }
 }
@@ -43,8 +42,8 @@ const initdb = (cb) => {
     req.onerror = e => console.error(e)
     req.onupgradeneeded = (e) => {
         const db = req.result
-        db.createObjectStore('kline', { keyPath: "time" })
-        db.createObjectStore('pulse', { keyPath: "time" })
+        db.createObjectStore('kline', { keyPath: ["contract", "time"] })
+        db.createObjectStore('pulse', { keyPath: ["contract", "time"] })
     }
     req.onsuccess = (e) => {
         cb(req.result)
@@ -94,16 +93,23 @@ const savedata = async (store, data) => {
 }
 
 const export_data = async () => {
-    let text = ""
+    const data = Object.create(null)
 
-    const stores = [].slice.call((await getdb()).objectStoreNames)
-    for (const store of stores) {
-        text += `=== ${store} ===\n`
+    for (const store of ['kline', 'pulse']) {
+        const contracts = new Set()
+
         await new Promise(async (resolve, reject) => {
             (await getstore(store)).openCursor().onsuccess = (e) => {
                 const cursor = event.target.result
                 if (cursor) {
-                    text += JSON.stringify(cursor.value) + '\n'
+                    const contract = cursor.value.contract
+                    if (!contracts.has(contract)) {
+                        data[contract] = (data[contract] || '') + `=== ${store} ===\n`
+                        contracts.add(contract)
+                    }
+
+                    delete cursor.value.contract
+                    data[contract] += JSON.stringify(cursor.value) + '\n'
                     cursor.continue()
                 } else {
                     resolve()
@@ -112,7 +118,9 @@ const export_data = async () => {
         })
     }
 
-    download(text)
+    for (const contract in data) {
+        download(data[contract], contract)
+    }
 }
 
 const alignInterval = async (sec, phase, f) => {
