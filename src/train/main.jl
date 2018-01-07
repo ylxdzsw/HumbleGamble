@@ -23,7 +23,7 @@ function get_data(fs)
     data
 end
 
-@main function predict(epoch::Int=50000; data::Vector{String}=[])
+@main function predict(epoch::Int=50000; data::Vector{String}=String[])
     data = get_data(data)
 
     @load rel"../../data/weights.jld" w
@@ -45,7 +45,7 @@ pred(x, w) = begin
     final(state, w[3]), frame[end, 1]
 end
 
-@main function policy(epoch::Int=20000; data::Vector{String}=[])
+@main function policy(epoch::Int=20000; data::Vector{String}=String[])
     data = get_data(data)
 
     @load rel"../../data/weights.jld" w
