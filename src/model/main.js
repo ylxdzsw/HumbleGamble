@@ -44,7 +44,12 @@ chrome.runtime.onMessage.addListener((data, sender, respond) => {
             ]
 
             if (hist.length >= 4) {
-                rpcs.push({ action: 'gamble', data: suggestion.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0) })
+                const p = softmax(suggestion, 0.33)
+                const act = Math.random() < p[0] ? 0 :
+                            Math.random() < p[1] / (p[1] + p[2]) ? 1 : 2
+                console.log(p)
+                console.log(act)
+                rpcs.push({ action: 'gamble', data: act })
             }
 
             return respond(rpcs)

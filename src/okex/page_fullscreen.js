@@ -72,7 +72,7 @@ const inject_elements = () => {
 }
 
 const ensure_BBO = () => $("#match_price").checked || $("#match_price").click()
-const set_amount = (x) => $("#amount").value = x.toFixed(4)
+const set_amount = (x) => $("#amount").value = x.toFixed(2)
 
 const is_recording = () => $("#recording") && $("#recording").checked
 const is_gambling = () => $("#gambling") && $("#gambling").checked
@@ -126,7 +126,7 @@ const long = async () => {
 
     if (open) {
         ensure_BBO()
-        set_amount(0.2)
+        set_amount(0.5)
         $("[value='Open Long']").click()
     }
 }
@@ -153,7 +153,7 @@ const short = async () => {
 
     if (open) {
         ensure_BBO()
-        set_amount(0.02)
+        set_amount(0.05)
         $("[value='Open Short']").click()
     }
 }

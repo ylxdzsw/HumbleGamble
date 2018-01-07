@@ -24,8 +24,8 @@ const predict = (pred) => {
     return pred
 }
 
-const softmax = (x) => {
-    x = x.map(Math.exp)
+const softmax = (x, t=1) => {
+    x = x.map(x=>Math.exp(x / t))
     const s = x.reduce((x, y) => x + y)
     return x.map(x => x / s)
 }
