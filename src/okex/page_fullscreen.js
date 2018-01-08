@@ -126,7 +126,7 @@ const long = async () => {
 
     if (open) {
         ensure_BBO()
-        set_amount(0.5)
+        set_amount(0.05) // this don't work for OKEx's bug. short() works well.
         $("[value='Open Long']").click()
     }
 }
