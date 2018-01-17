@@ -68,7 +68,7 @@ function pred_loss(w, frame, pulse, y)
     entropy(p[17:19], y[5]) + 5(p[20] - y[5])^2
 end
 
-function train_predict(w, data, nepoch=200_000, μ=[1e-5, 2e-6, 1e-6])
+function train_predict(w, data, nepoch=200_000, μ=[2e-5, 5e-6, 2e-6])
     g = gradloss(pred_loss)
     mean_loss = 0
     tic()

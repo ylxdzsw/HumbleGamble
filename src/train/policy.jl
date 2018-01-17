@@ -47,7 +47,7 @@ function walk_loss(w, data, total_balance)
     sum([p * (balance - mb) for (p, balance) in seq])
 end
 
-function train_policy(w, data, nepoch=40_000, μ=1e-7)
+function train_policy(w, data, nepoch=40_000, μ=5e-7)
     g = grad(walk_loss)
     total_balance = Ref(0.)
     tic()
